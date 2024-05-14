@@ -47,8 +47,8 @@ Deno.serve(async (req) => {
 
 		// Add invoice title
 		page.drawText('Invoice', {
-			x: width / 2 - 30,
-			y: height - margin - 40,
+			x: margin,
+			y: height - margin - 60,
 			size: 24,
 			font,
 			color: rgb(0, 0, 0),
@@ -361,7 +361,7 @@ Deno.serve(async (req) => {
 	}
 });
 
-// curl --request POST 'http://localhost:54321/functions/v1/pdf2' \
+// curl --request POST 'http://localhost:54321/functions/v1/create-pdf-invoice' \
 //   --header 'Content-Type: application/json' \
 //   --data '{
 //     "invoiceData": {
@@ -377,7 +377,7 @@ Deno.serve(async (req) => {
 //         "organization": "Organization Name",
 //         "address": "123 Cool Street",
 //         "email": "cory321@gmail.com",
-//         "phone": "5593673374"
+//         "phone": "555-555-5555"
 //       },
 //       "subtotal": "$500",
 //       "taxRate": "8.75",
