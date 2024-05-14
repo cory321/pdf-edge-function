@@ -1,6 +1,10 @@
-// supabase/functions/generate-pdf/index.ts
+// supabase/functions/pdf2/index.ts
 
-import { PDFDocument, rgb } from 'https://cdn.skypack.dev/pdf-lib';
+import {
+	PDFDocument,
+	rgb,
+	StandardFonts,
+} from 'https://cdn.skypack.dev/pdf-lib';
 
 Deno.serve(async (req) => {
 	if (req.method !== 'POST') {
@@ -16,111 +20,331 @@ Deno.serve(async (req) => {
 
 		const { width, height } = page.getSize();
 		const fontSize = 12;
+		const margin = 50;
+
+		// Load a standard font
+		const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+		// Add business information
+		page.drawText(invoiceData.businessName, {
+			x: margin,
+			y: height - margin,
+			size: fontSize + 4,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		page.drawText(
+			`${invoiceData.businessPhone} | ${invoiceData.businessEmail}`,
+			{
+				x: margin,
+				y: height - margin - 20,
+				size: fontSize,
+				font,
+				color: rgb(0, 0, 0),
+			}
+		);
 
 		// Add invoice title
 		page.drawText('Invoice', {
-			x: 50,
-			y: height - 50,
+			x: width / 2 - 30,
+			y: height - margin - 40,
 			size: 24,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		// Add billing information
+		page.drawText('Bill to:', {
+			x: margin,
+			y: height - margin - 80,
+			size: fontSize + 2,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		page.drawText(invoiceData.billTo.name, {
+			x: margin,
+			y: height - margin - 100,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		page.drawText(invoiceData.billTo.organization, {
+			x: margin,
+			y: height - margin - 115,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		page.drawText(invoiceData.billTo.address, {
+			x: margin,
+			y: height - margin - 130,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		page.drawText(invoiceData.billTo.email, {
+			x: margin,
+			y: height - margin - 145,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		page.drawText(invoiceData.billTo.phone, {
+			x: margin,
+			y: height - margin - 160,
+			size: fontSize,
+			font,
 			color: rgb(0, 0, 0),
 		});
 
 		// Add invoice details
-		page.drawText(`Invoice Number: ${invoiceData.invoiceNumber}`, {
-			x: 50,
-			y: height - 100,
+		page.drawText(`Invoice #: ${invoiceData.invoiceNumber}`, {
+			x: margin,
+			y: height - margin - 200,
 			size: fontSize,
+			font,
 			color: rgb(0, 0, 0),
 		});
 
-		page.drawText(`Date: ${invoiceData.date}`, {
-			x: 50,
-			y: height - 120,
+		page.drawText(`PO #: ${invoiceData.poNumber}`, {
+			x: margin,
+			y: height - margin - 215,
 			size: fontSize,
+			font,
 			color: rgb(0, 0, 0),
 		});
 
-		page.drawText(`Due Date: ${invoiceData.dueDate}`, {
-			x: 50,
-			y: height - 140,
+		page.drawText(`Date issued: ${invoiceData.dateIssued}`, {
+			x: margin,
+			y: height - margin - 230,
 			size: fontSize,
+			font,
 			color: rgb(0, 0, 0),
 		});
 
-		page.drawText(`Total: ${invoiceData.total}`, {
-			x: 50,
-			y: height - 160,
+		page.drawText(`Next payment due: ${invoiceData.dueDate}`, {
+			x: margin,
+			y: height - margin - 245,
 			size: fontSize,
+			font,
 			color: rgb(0, 0, 0),
 		});
 
-		// Add item headers
-		const itemsStartY = height - 200;
-		page.drawText('Item', {
-			x: 50,
-			y: itemsStartY,
+		// Add service information headers
+		const serviceHeaderY = height - 300 - 20; // Adjusted Y coordinate for extra space
+		page.drawText('SERVICE INFO', {
+			x: margin,
+			y: serviceHeaderY,
 			size: fontSize,
+			font,
 			color: rgb(0, 0, 0),
 		});
-		page.drawText('Description', {
-			x: 150,
-			y: itemsStartY,
+		page.drawText('QTY', {
+			x: margin + 100,
+			y: serviceHeaderY,
 			size: fontSize,
+			font,
 			color: rgb(0, 0, 0),
 		});
-		page.drawText('Unit Cost', {
-			x: 300,
-			y: itemsStartY,
+		page.drawText('UNIT', {
+			x: margin + 150,
+			y: serviceHeaderY,
 			size: fontSize,
+			font,
 			color: rgb(0, 0, 0),
 		});
-		page.drawText('Quantity', {
-			x: 400,
-			y: itemsStartY,
+		page.drawText('UNIT PRICE', {
+			x: margin + 200,
+			y: serviceHeaderY,
 			size: fontSize,
+			font,
 			color: rgb(0, 0, 0),
 		});
-		page.drawText('Line Total', {
-			x: 500,
-			y: itemsStartY,
+		page.drawText('TOTAL', {
+			x: margin + 300,
+			y: serviceHeaderY,
 			size: fontSize,
+			font,
 			color: rgb(0, 0, 0),
 		});
 
-		// Add items
-		let currentY = itemsStartY - 20;
+		// Add service items
+		let currentY = serviceHeaderY - 20;
 		invoiceData.items.forEach((item: any) => {
 			page.drawText(item.name, {
-				x: 50,
+				x: margin,
 				y: currentY,
 				size: fontSize,
+				font,
 				color: rgb(0, 0, 0),
 			});
 			page.drawText(item.description, {
-				x: 150,
+				x: margin + 100,
 				y: currentY,
 				size: fontSize,
+				font,
 				color: rgb(0, 0, 0),
 			});
 			page.drawText(item.unitCost, {
-				x: 300,
+				x: margin + 200,
 				y: currentY,
 				size: fontSize,
+				font,
 				color: rgb(0, 0, 0),
 			});
 			page.drawText(item.quantity.toString(), {
-				x: 400,
+				x: margin + 250,
 				y: currentY,
 				size: fontSize,
+				font,
 				color: rgb(0, 0, 0),
 			});
 			page.drawText(item.lineTotal, {
-				x: 500,
+				x: margin + 300,
 				y: currentY,
 				size: fontSize,
+				font,
 				color: rgb(0, 0, 0),
 			});
 			currentY -= 20;
+		});
+
+		// Add summary
+		currentY -= 20; // Add extra space before the summary
+		page.drawText('Subtotal', {
+			x: margin + 300,
+			y: currentY,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+		page.drawText(invoiceData.subtotal, {
+			x: margin + 400,
+			y: currentY,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		page.drawText(`Tax (${invoiceData.taxRate}%)`, {
+			x: margin + 300,
+			y: currentY - 20,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+		page.drawText(invoiceData.tax, {
+			x: margin + 400,
+			y: currentY - 20,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		page.drawText('Total (USD)', {
+			x: margin + 300,
+			y: currentY - 40,
+			size: fontSize + 2,
+			font,
+			color: rgb(0, 0, 0),
+		});
+		page.drawText(invoiceData.total, {
+			x: margin + 400,
+			y: currentY - 40,
+			size: fontSize + 2,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		// Add payment schedule header
+		const paymentScheduleHeaderY = currentY - 80;
+		page.drawText('PAYMENT SCHEDULE', {
+			x: margin,
+			y: paymentScheduleHeaderY,
+			size: fontSize + 2,
+			font,
+			color: rgb(0, 0, 0),
+		});
+		page.drawText('AMOUNT', {
+			x: margin + 150,
+			y: paymentScheduleHeaderY,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+		page.drawText('DUE DATE', {
+			x: margin + 250,
+			y: paymentScheduleHeaderY,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+		page.drawText('PAYMENT DATE', {
+			x: margin + 350,
+			y: paymentScheduleHeaderY,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+		page.drawText('PAYMENT ID', {
+			x: margin + 450,
+			y: paymentScheduleHeaderY,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+		page.drawText('STATUS', {
+			x: margin + 550,
+			y: paymentScheduleHeaderY,
+			size: fontSize,
+			font,
+			color: rgb(0, 0, 0),
+		});
+
+		// Add payment schedule items
+		invoiceData.paymentSchedule.forEach((payment: any, index: number) => {
+			const paymentScheduleItemY = paymentScheduleHeaderY - 20 * (index + 1);
+			page.drawText(payment.amount, {
+				x: margin + 150,
+				y: paymentScheduleItemY,
+				size: fontSize,
+				font,
+				color: rgb(0, 0, 0),
+			});
+			page.drawText(payment.dueDate, {
+				x: margin + 250,
+				y: paymentScheduleItemY,
+				size: fontSize,
+				font,
+				color: rgb(0, 0, 0),
+			});
+			page.drawText(payment.paymentDate, {
+				x: margin + 350,
+				y: paymentScheduleItemY,
+				size: fontSize,
+				font,
+				color: rgb(0, 0, 0),
+			});
+			page.drawText(payment.paymentId, {
+				x: margin + 450,
+				y: paymentScheduleItemY,
+				size: fontSize,
+				font,
+				color: rgb(0, 0, 0),
+			});
+			page.drawText(payment.status, {
+				x: margin + 550,
+				y: paymentScheduleItemY,
+				size: fontSize,
+				font,
+				color: rgb(0, 0, 0),
+			});
 		});
 
 		const pdfBytes = await pdfDoc.save();
@@ -137,17 +361,33 @@ Deno.serve(async (req) => {
 	}
 });
 
-// curl --request POST 'http://localhost:54321/functions/v1/generate-pdf' \
+// curl --request POST 'http://localhost:54321/functions/v1/pdf2' \
 //   --header 'Content-Type: application/json' \
 //   --data '{
 //     "invoiceData": {
-//       "invoiceNumber": "12345",
-//       "date": "2023-05-01",
-//       "dueDate": "2023-05-15",
-//       "total": "$250.00",
+//       "businessName": "ByteLogic Agency",
+//       "businessPhone": "(555) 555-5555",
+//       "businessEmail": "cory@bytelogic.agency",
+//       "invoiceNumber": "05142024-000001",
+//       "poNumber": "- - -",
+//       "dateIssued": "May 6, 2024",
+//       "dueDate": "May 6, 2024",
+//       "billTo": {
+//         "name": "Cory Williams",
+//         "organization": "Organization Name",
+//         "address": "123 Cool Street",
+//         "email": "cory321@gmail.com",
+//         "phone": "5593673374"
+//       },
+//       "subtotal": "$500",
+//       "taxRate": "8.75",
+//       "tax": "$43.75",
+//       "total": "$543.75",
 //       "items": [
-//         { "name": "Item 1", "description": "Description 1", "unitCost": "$50.00", "quantity": 2, "lineTotal": "$100.00" },
-//         { "name": "Item 2", "description": "Description 2", "unitCost": "$75.00", "quantity": 2, "lineTotal": "$150.00" }
+//         { "name": "Service Item Name", "description": "1 Hour", "unitCost": "$500", "quantity": 1, "lineTotal": "$500" }
+//       ],
+//       "paymentSchedule": [
+//         { "amount": "$543.75", "dueDate": "May 6, 2024", "paymentDate": "", "paymentId": "#000004-001", "status": "" }
 //       ]
 //     }
 //   }' --output invoice.pdf
